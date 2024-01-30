@@ -20,3 +20,15 @@ measurements <- tibble(
   Hugo = hugo_heights,
   Lucy = lucy_heights
 )
+
+measurements_long <- measurements %>%
+  pivot_longer(-Friend, names_to = "Measured_By", values_to = "Height")
+
+# Plotting
+ggplot(measurements_long, aes(x = Measured_By, y = Height, color = Measured_By)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.2) +
+  theme_minimal() +
+  labs(title = "Height Measurements by Edward, Hugo, and Lucy",
+       x = "Measured By",
+       y = "Height (cm)")
