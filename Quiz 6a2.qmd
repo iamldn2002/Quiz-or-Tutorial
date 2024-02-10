@@ -1,0 +1,37 @@
+---
+title: "Quiz 6a2"
+format: html
+author: Dingning LI
+---
+```{r}
+library(testthat)
+```
+
+```{r}
+library(testthat)
+
+library(testthat)
+
+# Assuming 'german_cities' is a vector containing city names. If it's a column in a data frame, adjust accordingly.
+german_cities <- c("Berlin", "Hamburg", "Munich", "Cologne", "Frankfurt", "Rostock") # Example vector
+
+specified_cities <- c("Berlin", "Hamburg", "Munich", "Cologne", "Frankfurt", "Rostock")
+
+# Test 1: Correctness of Cities
+test_that("All cities are correct", {
+  expect_true(all(german_cities %in% specified_cities))
+})
+
+# Test 2: Completeness of List
+test_that("All specified cities are present", {
+  expect_true(all(specified_cities %in% german_cities))
+})
+
+# Test 3: Uniqueness of Entries
+test_that("Each city is unique", {
+  expect_true(length(german_cities) == length(unique(german_cities)))
+})
+
+
+```
+
