@@ -1,0 +1,80 @@
+---
+title: "Quiz 6a"
+format: html
+author: Dingning Li
+---
+```{r}
+set.seed(12345) 
+
+# Define the working hours
+hours <- c('9:00 - 10:00', '10:00 - 11:00', '11:00 - 12:00', '12:00 - 13:00', 
+           '13:00 - 14:00', '14:00 - 15:00', '15:00 - 16:00', '16:00 - 17:00')
+
+# Simulating data for Employee A
+employee_A <- sample(2:10, length(hours), replace = TRUE)
+
+# Simulating data for Employee B with a mild positive correlation to Employee A
+employee_B <- employee_A + sample(-2:2, length(hours), replace = TRUE)
+
+# Ensuring all values are positive and within a realistic range
+employee_B <- pmax(employee_B, 1)
+
+# Creating a data frame
+data <- data.frame(
+  Hour = hours,
+  Employee_A = employee_A,
+  Employee_B = employee_B
+)
+
+print(data)
+
+# Test for Positive Correlation
+cor.test(data$Employee_A, data$Employee_B)
+
+# Compare Average Performance (t-test)
+t.test(data$Employee_A, data$Employee_B)
+
+# Test difference for variability (F-test)
+var.test(data$Employee_A, data$Employee_B)
+
+#Test for Consistency in Performance
+cv_A <- sd(data$Employee_A) / mean(data$Employee_A)
+cv_B <- sd(data$Employee_B) / mean(data$Employee_B)
+print(cv_A)
+print(cv_B)
+
+#Analyze the Impact of Time on Performance
+data$HourFactor <- factor(data$Hour)
+anova_test_A <- aov(Employee_A ~ HourFactor, data = data)
+anova_test_B <- aov(Employee_B ~ HourFactor, data = data)
+summary(anova_test_A)
+summary(anova_test_B)
+
+#Test for Differences in Variability Between Employees
+f_test <- var.test(data$Employee_A, data$Employee_B)
+print(f_test)
+
+
+
+```
+
+```{r}
+# Draw the graph to show obeservations
+library(ggplot2)
+
+# Drawing a graph with ggplot2
+ggplot(data, aes(x = Hour)) +
+  geom_line(aes(y = Employee_A, group = 1, colour = "Employee A"), size = 1) +
+  geom_point(aes(y = Employee_A, colour = "Employee A")) +
+  geom_line(aes(y = Employee_B, group = 1, colour = "Employee B"), size = 1) +
+  geom_point(aes(y = Employee_B, colour = "Employee B")) +
+  scale_colour_manual(values = c("Employee A" = "red", "Employee B" = "green")) +
+  labs(title = "Employee Performance Over Time",
+       x = "Time Slot",
+       y = "Customers Served",
+       colour = "Employee") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+```
