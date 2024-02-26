@@ -1,0 +1,44 @@
+---
+title: "Quiz 7(2)"
+format: html
+---
+```{r}
+set.seed(567) 
+
+
+n <- 1000
+
+race <- sample(c("RaceA", "RaceB"), n, replace = TRUE)
+gender <- sample(c("Male", "Female"), n, replace = TRUE)
+
+vote_preference <- vector("character", n)  
+
+for (i in 1:n) {
+ 
+  p_CandidateX <- 0.5 
+  
+ 
+  if (race[i] == "RaceA") {
+    p_CandidateX <- p_CandidateX + 0.1  
+  } else {
+    p_CandidateX <- p_CandidateX - 0.1 
+  }
+  
+ 
+  if (gender[i] == "Female") {
+    p_CandidateX <- p_CandidateX + 0.05  # Slight increase for Female
+  } else {
+    p_CandidateX <- p_CandidateX - 0.05  # Slight decrease for Male
+  }
+  
+  
+  vote_preference[i] <- ifelse(runif(1) < p_CandidateX, "CandidateX", "CandidateY")
+}
+
+data <- data.frame(race, gender, vote_preference)
+
+print(data)
+
+
+```
+

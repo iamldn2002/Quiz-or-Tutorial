@@ -1,0 +1,69 @@
+---
+title: "Quiz 7"
+format: html
+---
+```{r}
+set.seed(345)
+
+# Simulate data for predictors
+building_data <- tibble(
+  num_buildings = 1:100,
+  num_floors = sample(1:60, 100, replace = TRUE),
+  year_construction = sample(1850:2020, 100, replace = TRUE),
+  location_type = sample(c("Downtown", "Midtown"), 100, replace = TRUE), 
+  architecture_style = sample(c("Present Day", "Baroque"), 100, replace = TRUE) 
+)
+
+
+```
+
+```{r}
+set.seed(345)
+
+reg1 <- lm(num_floors ~ year_construction + location_type + architecture_style, data = building_data)
+summary(reg1)
+
+reg2 <- lm(num_floors ~ year_construction, data = building_data)
+summary(reg2)
+
+reg3 <- lm(num_floors ~ location_type, data = building_data)
+summary(reg3)
+
+reg4 <- lm(num_floors ~ architecture_style, data = building_data)
+summary(reg4)
+
+reg5 <- lm(num_floors ~ year_construction + location_type, data = building_data)
+summary(reg5)
+
+reg6 <- lm(num_floors ~ year_construction + architecture_style, data = building_data)
+summary(reg6)
+
+reg7 <- lm(num_floors ~ location_type + architecture_style, data = building_data)
+summary(reg7)
+
+reg8 <- lm(num_floors ~ year_construction * location_type, data = building_data)
+summary(reg8)
+
+reg9 <- lm(num_floors ~ year_construction * architecture_style, data = building_data)
+summary(reg9)
+
+reg10 <- lm(num_floors ~ location_type * architecture_style, data = building_data)
+summary(reg10)
+
+```
+
+```{r}
+library(rstanarm)
+library(ggplot2)
+
+# ggplot2 visualization with correct variable names and dataset
+ggplot(building_data, aes(x = year_construction, y = num_floors)) +
+  geom_point() +
+  labs(x = "Year of Construction", y = "Number of Floors", title = "Building Heights in London")
+
+# Build a model using rstanarm with correct variable names and dataset
+model <- stan_glm(num_floors ~ year_construction + location_type + architecture_style, data = building_data)
+print(summary(model))
+
+```
+
