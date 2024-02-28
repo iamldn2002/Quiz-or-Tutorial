@@ -1,0 +1,73 @@
+---
+title: "Tutorial 7"
+author: "Dingning Li"
+date: '2024-02-27'
+output:
+  pdf_document: default
+  bookdown::pdf_document2: default
+toc: true
+abstract: 'This report researches data integrity through a simulated data based on
+  the given scenario. This report presents a case study where a dataset, supposed
+  to represent a Normal distribution, is compromised through a series of unintentional
+  errors. Despite these errors, the research aims to check whether the mean of the
+  underlying data-generating process exceeds 0. '
+---
+
+
+#Introdiction
+Data integity is crucial in research, as the validity of findings heavily relies on the accuracy of the underlying data. This report shows a case study where a dataset, originally derived from a Normal distribution, undergone a series of alterations, including overwriting of observations due to instrument limitations, erroneous modifications by a research assistant, and unintended adjustments of decimal places for specific values. The study aims to assess the influence of these errors on the dataset's mean and discuss strategies to mitigate such issues in future research.
+
+#Methodology
+The dataset was originally generated to mimic a Normal distribution with mean and standard deviiation equals to 1, including 1000 observations. Du eto an instrument limitations, the last 100 observations were overwritten by the first 100, reducing the unique observation count to 900. Then, a research assistant accidentally altered the dataset by converting hafl of the negative values to positiive and adjusting the decimal places of valyes between 1 and 1.1, leading to a significant data distortion.
+
+#Data processing
+The provided R code efficietly manipulates a dataset generated from a nomal distribution. The dataset first created and then simulates an instrument error by an instrument error by overwriting the last 100 obersations with the first 100. To address accidental alterations, nagative values are randomly flipped to positive for about half of them. Additionally, values between 1 and 1.1 are adjusted by dividing them by 10, targeting them with a logical vector. These steps demonstrate R's capability for concise and efficient data manipulation through vectorized operations, streamlining the process of addressing complex data cleaning scenarios.
+
+```{r}
+library(dplyr)
+```
+
+```{r}
+set.seed(123)
+original_data <- rnorm(1000, mean = 1, sd = 1)
+
+#the final 100 observations are actually a repeat of the first 100
+original_data[901: 1000] <- original_data[1:100]
+
+# Change half of the negatiive values to positive
+negatives <- original_data < 0
+random_selection <- runif(sum(negatives)) < 0.5
+original_data[negatives] <- abs(original_data[negatives]) * (random_selection + !random_selection * -1)
+
+#Adjust the decimal place for values between 1 and 1.1
+decimal_adjust <- original_data >= 1 & original_data <= 1.1
+original_data[decimal_adjust] <- original_data[decimal_adjust] / 10
+
+#Final cleaned data
+cleaned_mean <- mean(original_data)
+cleaned_mean
+t_test_result <- t.test(original_data, mu = 0, alternative = "greater")
+
+t_test_result
+
+```
+
+
+# Results
+Analysis of the cleaned dataset revealed a mean of approximately 1.14, suggesting that despite the substantial data alterations, the central tendency measure remained robust, marginally above the true mean of 1. This finding indicates that the mean, as a statistical measure, can exhibit resilience to certain types of data integrity issues, though the extent and nature of errors critically influence this resilience.
+
+#Discussion
+The changed data modifications introduced several biases and errors into the dataset. The overwriting of observations could lead to underestimation of variance and potentially mask outliers or unique data trends. The conversion of negative values to positive not only skews the data distribution but also impacts the dataset's mean, potentially leading to erroneous conclusions about the data's central tendency. The decimal place adjustment for specific values introduces a systematic error that disproportionately affects a subset of the data, potentially leading to misleading inferences about the data's scale and magnitude.
+
+To avoid such problems, there are few aspects can be improved in the futue study:
+
+1. Instrumentation checks: Regular validation of data collection instruments to ensure their capacity and performance align with research requirements.
+
+2. Training: ensuring personnel involved in data handling are adequately trained
+
+3. Data Verification: two o more than two personnel participate in data record and processing work.
+
+#Conclusion
+The analysis shows how crucial it is to keep data accurate and trustworthy. Even though some statistical calculations can still give useful results despite errors, it's clear that we need strong systems in place to handle data correctly and fix any issues. By thoroughly checking and double-checking data, researchers can make their results more dependable and trustworthy, leading to better decisions based on data.
+
+Additionally, thanks to Jierui Miao, pointing out some of the problems in my code and suggesting to increase few improvements that can avoid data errors in the future study, which I ignore at first.
