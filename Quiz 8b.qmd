@@ -1,0 +1,25 @@
+---
+title: "Quiz 8b"
+format: html
+---
+```{r}
+set.seed(123)
+
+n <- 5000 
+
+#Indepedent Variable
+earth <- rnorm(n, mean = 1, sd = 0.3)
+fire <- rnorm(n, mean = 0.7, sd = 0.5)
+wind <- rnorm(n, mean = 1.5, sd = 0.4)
+water <- rnorm(n, mean = 0.9, sd = 0.1)
+
+# Dependent Variable
+heart <- 3 + 0.5*earth + 0.6*fire + 0.7*wind + 0.8*water + rnorm(n, mean = 0, sd = 0.25)
+
+dataset <- data.frame(earth, fire, wind, water, heart)
+
+model <- lm(heart ~ earth + fire + wind + water, data = dataset)
+
+summary(model)
+```
+

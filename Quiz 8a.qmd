@@ -1,0 +1,95 @@
+---
+title: "Quiz 8"
+format: html
+---
+```{r}
+set.seed(122)
+n <- 1000
+
+# Simulating the data
+support <- rbinom(n, 1, 0.5) # Binary support variable
+
+# Categorical variables
+age_groups <- c('18-25', '26-35', '36-45', '46-55', '56+')
+gender <- c('Male', 'Female', 'Other')
+income_groups <- c('Low', 'Middle', 'High')
+education_levels <- c('High School', 'Bachelor\'s', 'Master\'s', 'Doctorate')
+
+# Randomly assigning categories to each observation
+age_group_data <- sample(age_groups, n, replace = TRUE)
+gender_data <- sample(gender, n, replace = TRUE)
+income_group_data <- sample(income_groups, n, replace = TRUE)
+education_level_data <- sample(education_levels, n, replace = TRUE)
+
+# Creating the data frame
+support_data <- data.frame(Support = support, 
+                 AgeGroup = age_group_data, 
+                 Gender = gender_data, 
+                 IncomeGroup = income_group_data, 
+                 HighestEducation = education_level_data)
+
+print(support_data)
+```
+
+```{r}
+# Test for simulated data
+
+library(gmodels)
+
+# 1. CrossTable between Support and Age Group
+crosstable_age <- CrossTable(support_data$Support, support_data$AgeGroup, chisq = TRUE)
+
+# 2. CrossTable between Support and Gender
+crosstable_gender <- CrossTable(support_data$Support, support_data$Gender, chisq = TRUE)
+
+# 3. CrossTable between Support and Income Group
+crosstable_income <- CrossTable(support_data$Support, support_data$IncomeGroup, chisq = TRUE)
+
+# 4. CrossTable between Support and Education Level
+crosstable_education <- CrossTable(support_data$Support, support_data$HighestEducation, chisq = TRUE)
+
+# 5. Logistic Regression to predict Support using Age Group
+model_age <- glm(Support ~ AgeGroup, data = support_data, family = binomial)
+
+# 6. Logistic Regression to predict Support using Gender
+model_gender <- glm(Support ~ Gender, data = support_data, family = binomial)
+
+# 7. Logistic Regression to predict Support using Income Group
+model_income <- glm(Support ~ IncomeGroup, data = support_data, family = binomial)
+
+# 8. Logistic Regression to predict Support using Education Level
+model_education <- glm(Support ~ HighestEducation, data = support_data, family = binomial)
+
+# 9. Logistic Regression to predict Support using Age Group and Gender
+model_age_gender <- glm(Support ~ AgeGroup + Gender, data = support_data, family = binomial)
+
+# 10. Logistic Regression to predict Support using all predictors
+model_full <- glm(Support ~ AgeGroup + Gender + IncomeGroup + HighestEducation, data = support_data, family = binomial)
+
+
+
+```
+
+```{r}
+#Draw a Graph
+
+ggplot(support_data, aes(x = AgeGroup, fill = factor(Support))) +
+  geom_bar(position = "fill") +
+  theme_minimal() +
+  labs(fill = "Support", x = "Age Group", y = "Proportion") +
+  scale_y_continuous(labels = scales::percent)
+```
+
+```{r}
+#Fit the model
+model <- stan_glm(Support ~ AgeGroup + Gender + IncomeGroup + HighestEducation,
+                  data = support_data,
+                  family = binomial,
+                  chains = 4,
+                  iter = 2000,
+                  seed = 122)
+
+# Output the model summary
+print(summary(model))
+```
+
