@@ -1,0 +1,168 @@
+---
+title: 'Investigation of Missing Data: Strategies and Implications'
+author: "Dingning Li"
+date: '2024-03-05'
+thanks: "Code and output of pdf are available at:"
+output: pdf_document
+bibliography: reference8.bib
+
+---
+```{r install-packages, include=FALSE, echo=FALSE}
+if (!requireNamespace("mice", quietly = TRUE)) {
+  install.packages("mice")
+}
+library(tidyverse)
+library(mice)
+
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# Introduction
+In research, missing data is a common and prevalent issue that can affect statistical analysis and lead to misleading conclusions. It occurs when information is not observed or recorded, influencing the dataset’s integrity. There are three types of missing data situation: Missing Completely at Random(MCAR), where missing data is unrelated to any variables; Missing at Random(MAR), where missing data is related to other observed variables but not the missing data itself; and Missing Not at Random(MNAR), where the missing data is related to the value of the missing data[@citearticle]. Understanding complex mechanisms is important for applying appropriate method to solve the issues of missing data on research findings.
+
+
+# Types of Missing Data
+
+### Missing Completely Random Data(MCAR)
+
+MCAR occurs when all observations are missing with the same probability. it implies that there is no systematic difference between missing and observed data, making it the least problematic type because it does not introduce the bias associated with observed or missing data. MCAR is a rare case of missing data.
+
+### Missing at Random Data(MAR)
+MAR occurs when the probability of missing data is related to the observed data and not to the missing data itself. These data are not completely random missing, the mechanism behind their loss can be explained in terms of other observed variables. 
+
+### Missing Not at Random Data(MAR)
+MNAR refers to data missing due to reasons related to the missing data itself or unobserved variables. This type of data missing can lead significant bias, as the absence of data which is related to its unseen values. 
+
+# Strategies for Handling Missing Data
+
+In research, handling missing data efficiently is essential for the integrity of statistical analyses and reliability of the results. Various strategies have been introduced to address this challenge, including simple methods that exclude missing data to more complex and sophisticated mechanisms. Each method has its strengths and limitations, and it is crucial to make the choice of method based on the nature of missing data and the research objectives. In the following discussion, I will introduce these approaches and determine the optimal approach for addressing missing data.
+
+### Deletion Method:
+Deletion strategy is the most basic and traditional method to address missing data issue. This approach refers to removing data points or record that contain missing values, providing a complete data set finally. But it can also lead to significant data loss and cause potential bias if the missing data is not completely random.
+
+### Single Imputation
+
+A more prevalent strategy is the process of replacing missing data with substituted values to allow for complete data analysis. Single imputation involves filling in each missing value with a single, specific value, such as mean, median, or mode of the available data. They are simple to implement but can underestimate variability and introduce bias.
+
+### Multiple Imputation
+
+A more sophisticated technique used to handle missing data fills in each missing values several times, creating multiple complete datasets. These datasets are then analyzed separately, and the results are combined to produce estimates that reflect the uncertainty due to the missing data. The technique is suitable for various data types and missing data patterns, but need for appropriate imputation models.
+
+
+# Case Studies and Applications
+
+Real World Example: Investigate public satisfaction with public facilities.
+I create a case study simulating public satisfaction with public facilities, where participants rated their satisfaction on a scale from 1 to 10 and provided their gender and age. This simulation included missing data to mimic real-world issues researchers might face. In the case study, I will use [@citeR] and [@citemice] packages to simulate data and impute data into the dataset.
+
+```{r}
+set.seed(123)
+satisfication_data <- data.frame(
+  rating = sample(1:10, 1000, replace = TRUE),
+  gender = sample(c("Male", "Female"), 1000, replace = TRUE),
+  age = sample(18:80, 1000, replace = TRUE)
+)
+
+# Introduce missing data
+satisfication_data$rating[sample(1:1000, 120)] <- NA
+
+```
+
+```{r}
+#Deletion Data
+
+data_deletion <- na.omit(satisfication_data)
+summary_deletion <- summary(data_deletion$rating)
+
+# Original Data Summary
+original_mean <- mean(satisfication_data$rating, na.rm = TRUE)
+original_median <- median(satisfication_data$rating, na.rm = TRUE)
+
+# Deletion Data Summary
+deletion_mean <- mean(data_deletion$rating)
+deletion_median <- median(data_deletion$rating)
+
+# Summary Table
+summary_table <- data.frame(
+  Method = c("Original", "After Deletion"),
+  Mean = c(original_mean, deletion_mean),
+  Median = c(original_median, deletion_median)
+)
+
+print(summary_table)
+```
+
+```{r}
+#Mean Imputation
+mean_rating <- mean(satisfication_data$rating, na.rm = TRUE)
+satisfication_data_mean <- satisfication_data
+satisfication_data_mean$rating[is.na(satisfication_data_mean$rating)] <- mean_rating
+summary_mean <- summary(satisfication_data_mean$rating)
+
+# Original Summary
+original_mean <- mean(satisfication_data$rating, na.rm = TRUE)
+original_median <- median(satisfication_data$rating, na.rm = TRUE)
+
+# Mean Imputation
+mean_rating <- mean(satisfication_data$rating, na.rm = TRUE)
+satisfication_data_mean <- satisfication_data
+satisfication_data_mean$rating[is.na(satisfication_data_mean$rating)] <- mean_rating
+
+# Summary After Imputation
+imputed_mean <- mean(satisfication_data_mean$rating)
+imputed_median <- median(satisfication_data_mean$rating)
+
+# Comparison Table
+comparison_table <- data.frame(
+  Statistic = c("Mean", "Median"),
+  Original = c(original_mean, original_median),
+  After_Imputation = c(imputed_mean, imputed_median)
+)
+print(comparison_table)
+```
+
+```{r, message=FALSE, results='hide'}
+set.seed(123)
+imputed_data <- mice(satisfication_data, method='pmm', m=5, maxit=5)
+completed_data <- complete(imputed_data)
+summary_mi <- summary(completed_data$rating)
+
+
+```
+
+```{r}
+original_summary <- summary(satisfication_data$rating)
+
+# Multiple Imputation summary
+mi_summary <- summary(completed_data$rating)
+
+# Comparison table
+comparison_table <- data.frame(
+  Method = c("Original", "Multiple Imputation"),
+  Mean = c(mean(satisfication_data$rating, na.rm = TRUE), mean(completed_data$rating)),
+  Median = c(median(satisfication_data$rating, na.rm = TRUE), median(completed_data$rating))
+)
+
+print(comparison_table)
+
+```
+
+
+Upon comparing the three methods of handling missing data, the deletion method did not change the mean or median, suggesting that the missing data were likely MCAR, not biasing the sample's central tendency. The single imputation method, which filled missing values with the overall mean, maintained the original mean but slightly decreased the median, indicating that mean imputation could slightly distort the distribution of the data. Multiple imputation, a more sophisticated approach, provided a slightly higher mean than the original, which might be due to the imputation model capturing underlying patterns in the data to estimate the missing values.
+
+Each method has implications for data analysis: deletion can reduce sample size, single imputation may underestimate variability, and multiple imputation generally provides a more robust estimate accounting for the uncertainty of missing data. The choice among them should be guided by the missing data mechanism and the research context.
+
+
+# Conclusion
+
+In cobclusion, the exploration of missing data reveals its pervasive impact on research integrity and the need for careful treatment. Key strategies—deletion, single imputation, and multiple imputation—each play a distinctive role, tailored to the nature of the missingness. As we advance, the pursuit in missing data research is directed towards refining imputation techniques, leveraging machine learning algorithms, and enhancing our understanding of the biases introduced by data missing. These developments are expected to enhance the robustness of statistical analysis in the face of incomplete data.
+
+# Acknowledgment
+I am grateful to my peer, Yunshu Zhang, for her insightful suggestions that have significantly enhanced the quality of this paper. Her thoughtful feedback have been helpful in strengthening the analysis presented.
+
+\newpage
+
+# Reference
