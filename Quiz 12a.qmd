@@ -1,0 +1,113 @@
+---
+title: "Quiz 12a"
+author: Dingning Li
+---
+
+```{r}
+library(tidyverse)
+
+set.seed(123)
+
+years <- 2003:2023
+hospitals <- paste("Hospital", 1:5)
+cancer_types <- "All types"
+
+# Simulate data
+data <- expand.grid(Year = years, Hospital = hospitals, Cancer_Type = cancer_types) %>%
+  mutate(
+    Cancer_Deaths = sample(60:230, n(), replace = TRUE),
+    Total_Deaths = Cancer_Deaths + sample(400:700, n(), replace = TRUE)
+  )
+
+
+```
+
+```{r}
+# 10 tests fir simlation
+lm_list <- lapply(unique(data$Hospital), function(h) {
+  lm(Cancer_Deaths ~ Year, data = data[data$Hospital == h,])
+})
+print(lm_list)
+
+aov_test <- aov(Cancer_Deaths ~ Hospital, data = data)
+summary(aov_test)
+
+annual_deaths <- data %>%
+  group_by(Year) %>%
+  summarise(Total_Cancer_Deaths = sum(Cancer_Deaths))
+print(annual_deaths)
+
+total_deaths_hospital <- data %>%
+  group_by(Hospital) %>%
+  summarise(Total_Cancer_Deaths = sum(Cancer_Deaths)) %>%
+  arrange(desc(Total_Cancer_Deaths)) %>%
+  top_n(1, Total_Cancer_Deaths)
+
+print(total_deaths_hospital)
+
+lm_hospital1 <- lm(Cancer_Deaths ~ Year, data = data, subset = Hospital == "Hospital 1")
+
+summary(lm_hospital1)
+
+correlation_test <- cor.test(data$Cancer_Deaths, data$Total_Deaths)
+
+print(correlation_test)
+
+decade_comparison <- data %>%
+  mutate(Decade = ifelse(Year <= 2010, "2001-2010", "2011-2020")) %>%
+  group_by(Decade) %>%
+  summarise(Average_Cancer_Deaths = mean(Cancer_Deaths))
+
+print(decade_comparison)
+
+variance_deaths_hospital <- data %>%
+  group_by(Hospital) %>%
+  summarise(Variance_Cancer_Deaths = var(Cancer_Deaths))
+
+print(variance_deaths_hospital)
+
+first_last_total_deaths <- data %>%
+  group_by(Hospital) %>%
+  summarise(First_Year_Deaths = sum(Total_Deaths[Year == min(Year)]),
+            Last_Year_Deaths = sum(Total_Deaths[Year == max(Year)])) %>%
+  mutate(Percentage_Change = (Last_Year_Deaths - First_Year_Deaths) / First_Year_Deaths * 100)
+
+print(first_last_total_deaths)
+
+cancer_death_rate <- data %>%
+  group_by(Year) %>%
+  summarise(Total_Cancer_Deaths = sum(Cancer_Deaths),
+            Total_Deaths = sum(Total_Deaths),
+            Cancer_Death_Rate = (Total_Cancer_Deaths / Total_Deaths) * 100) %>%
+  arrange(Year)
+
+print(cancer_death_rate)
+
+
+
+```
+
+```{r}
+library(ggplot2)
+
+# Graph
+ggplot(data, aes(x = Year, y = Cancer_Deaths, color = Hospital)) +
+  geom_line() +
+  geom_point() +
+  theme_minimal() +
+  labs(title = "Cancer Deaths in Largest Five Hospitals (2003-2023)",
+       x = "Year", y = "Number of Cancer Deaths") +
+  scale_color_brewer(palette = "Set1")
+
+```
+
+```{r}
+
+model <- stan_glmer(Cancer_Deaths ~ Year + (1 | Hospital), data = data, family = gaussian)
+
+# Print the model summary
+print(summary(model))
+
+
+```
+
